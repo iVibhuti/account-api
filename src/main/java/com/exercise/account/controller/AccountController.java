@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.exercise.account.exception.InvalidAccountRequestException;
 import com.exercise.account.model.Account;
 import com.exercise.account.service.AccountService;
 import com.weddini.throttling.Throttling;
@@ -17,14 +18,18 @@ import com.weddini.throttling.ThrottlingType;
 @RestController
 @RequestMapping("/api")
 public class AccountController {
-	
+
 	@Autowired
 	AccountService service;
-	
+
 	@RequestMapping(value = "/account/add", method = RequestMethod.POST)
 	@Throttling(limit = 100, timeUnit = TimeUnit.SECONDS, type = ThrottlingType.RemoteAddr)
-	public Account add(@RequestBody Account account)  {
-		return service.save(account);
+	public Account add(@RequestBody Account account) {
+		Account acct = service.save(account);
+		if (acct != null) {
+			return acct;
+		}
+		throw new InvalidAccountRequestException("Invalid Request");
 	}
 
 	@RequestMapping(value = "/account/all", method = RequestMethod.GET)
